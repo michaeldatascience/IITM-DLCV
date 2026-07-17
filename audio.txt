@@ -1,0 +1,632 @@
+DLCV Quiz One. Audio revision script.
+
+This is a listening script. Everything is spoken in words. There are no symbols and no tables. Sentences are short on purpose. There are a few questions along the way. When one comes, answer it in your head before I give the answer.
+
+We start with the ten rules that matter most. Then we go block by block. Then at the very end I read those ten rules again. So you hear them twice.
+
+
+Part one. The ten rules that matter most.
+
+Rule one. Convolution flips the kernel. Correlation does not. Same weights. Same output shape. Only the values differ.
+
+Rule two. Straightness is negative. The numerator is lambda min minus lambda max. Minimum first. If your answer is positive you flipped it.
+
+Rule three. Floor the fraction, then add one. Never round.
+
+Rule four. Parameter counts ignore stride and padding. Always.
+
+Rule five. The gradient of the loss with respect to X has the same shape as X. Always.
+
+Rule six. If the kernel coefficients sum to zero it is a high pass filter.
+
+Rule seven. Separable means rank one. Every row is a multiple of the first row.
+
+Rule eight. For the median filter question, default to output indexing. The window sits one step down and one step right of the label.
+
+Rule nine. For momentum, use the formula printed in the question. If no formula is printed, alpha goes inside the velocity.
+
+Rule ten. For contrast stretching, transform the mean directly. Do not transform nine pixels and then average them.
+
+Those are the ten. Now we go into the blocks.
+
+
+Part two. Filtering.
+
+This is the biggest cluster on the paper. Roughly one third of every question. Almost all of it reduces to four ideas. The kernel is a set of weights. Convolution flips it. Separability is rank one. And the sum of the weights tells you the filter's character.
+
+Start with the two definitions.
+
+Cross correlation. The output at x y is the sum over u and v of h at u v, times I at x plus u, y plus v. Plus signs. No flip.
+
+Convolution. The output at x y is the sum over u and v of h at u v, times I at x minus u, y minus v. Minus signs. Which means flip the kernel by one hundred and eighty degrees, then correlate.
+
+The course writes correlation with a circled plus sign and convolution with an asterisk. That notation appears in the backpropagation questions, so it is worth knowing which is which.
+
+Now the traps. Three of them.
+
+First trap. Correlation does not flip the kernel. Convolution does. If a statement says correlation flips, it is false.
+
+Second trap. Both operations use the kernel weights. Neither one is unweighted. If a statement says correlation is unweighted, it is false.
+
+Third trap. The output size is identical for both. The flip changes values only. Never shape.
+
+And the consequence you will be asked about. Correlation and convolution are the same when the kernel is symmetric. That is true. A one hundred and eighty degree symmetric kernel is unchanged by the flip. This is why practitioners are sloppy about the distinction. Gaussian kernels, box kernels and Laplacian kernels are all symmetric.
+
+Convolution is commutative, associative and distributive. Correlation is only distributive. Not commutative. Not associative.
+
+Two more properties. The Fourier transform of a convolution is the product of the Fourier transforms. And the derivative of a convolution equals the convolution with the derivative of either factor. That second one is why you can pre differentiate a Gaussian.
+
+Now separability.
+
+A kernel is separable if it can be written as a column vector times a row vector. That is an outer product. And an outer product always has rank one. So separable means rank one. Exactly. Not approximately.
+
+How do you test it in ten seconds. Take the first non zero row. Check whether every other row is a scalar multiple of it. If yes, separable. A row of all zeros is fine. Zero times the first row is still a multiple.
+
+The other test is the two by two minor. Take any two rows and any two columns. Compute a d minus b c. If every such determinant is zero, rank one.
+
+Why does it matter. A k by k kernel costs k squared multiplies per pixel. Two one dimensional passes cost two k per pixel. The speed up ratio is k squared over two k, which is k over two. So a nine by nine kernel goes from eighty one to eighteen operations per pixel.
+
+Which filters are separable. Gaussian, box or mean, Sobel, and Prewitt. Which are not. Laplacian, Laplacian of Gaussian, median, and bilateral.
+
+Why is the Gaussian separable. Because the exponent splits. E to the minus x squared plus y squared, over two sigma squared, factors into e to the minus x squared over two sigma squared, times e to the minus y squared over two sigma squared. A function of x alone times a function of y alone is an outer product.
+
+Now a warning. The paper marks the statement, Gaussian is separable because it is linear, as true. That reasoning is bad. Sobel is linear and separable. Laplacian is linear and not separable. So linearity proves nothing. But the key marks it true anyway. So the decision rule is, answer by elimination. Do not evaluate the reason clause.
+
+Next. Low pass versus high pass.
+
+If the coefficients sum to zero it is high pass. Test it on a constant image. Everything cancels and you get zero. So it kills constant regions and keeps only change.
+
+If the coefficients sum to something non zero and all have the same sign, it is low pass. On a constant image it returns the constant.
+
+High pass examples. Laplacian, Laplacian of Gaussian, Sobel, emboss. Low pass examples. Box, Gaussian.
+
+The normalizing factor of an averaging filter is simply the sum of the raw weights. Because on a constant image of value c, the weighted sum is that total times c, and an average must return c.
+
+Memorize two. The three by three box filter is one over nine times all ones. The three by three Gaussian is one over sixteen times the kernel one, two, one, two, four, two, one, two, one. And one plus two plus one plus two plus four plus two plus one plus two plus one is sixteen. The five by five Gaussian divisor is two hundred and seventy three.
+
+Question. A three by three kernel has values one, three, one, on the top row. Three, five, three, in the middle. One, three, one, on the bottom. What is the normalizing factor.
+
+Take a moment. Add the corners, then the edges, then the centre.
+
+The answer is twenty one. Four corners of one is four. Four edges of three is twelve. Plus the centre five. Four plus twelve plus five is twenty one.
+
+Next. The filter that leaves the centre pixel unchanged.
+
+If the question says, for any image, the answer is the delta kernel. All zeros with a single one in the middle. No computing needed.
+
+If the question prints a specific image, you must compute every option and take the exact match. The images in these questions are rigged so that several options work, and the answer is often all of the above. If nothing matches exactly, take the normalized kernel with the largest centre weight.
+
+One warning. There is a version of this question in the second paper where the keyed answer computes to eight point seven one but the stem says eight. The key is simply wrong. Do not learn a rule from it.
+
+Next. The median filter.
+
+The median filter sorts the nine values in the window and takes the fifth. It is non linear. So it is not a convolution at all. It is best for salt and pepper noise, because a spike is an extreme value and the median ignores extremes.
+
+A five by five input with a three by three window and no padding gives a three by three output.
+
+Here is the ambiguity. Output position r c corresponds to a window centred at input position r plus one, c plus one. Default to that. So output three three means the window is centred at input four four. On the third paper that gives twenty two. The second paper reads the same label as centred at input three three and gets twenty. If you have time, compute both. Each takes about twenty seconds.
+
+Next. Linear contrast stretching.
+
+The formula. New pixel equals, old pixel minus I min, divided by I max minus I min, times two hundred and fifty five.
+
+I min and I max come from the image itself. Not from zero and two hundred and fifty five.
+
+Now the shortcut, and it saves you two minutes. The transformation is affine. It is a multiply and an add. Averaging is linear. So the mean of the transformed image equals the transform of the mean. If they ask for the mean, transform the mean directly. One calculation instead of nine.
+
+Check yourself. I min must map to zero. I max must map to two hundred and fifty five. And do not round intermediate values, because the accepted answer ranges are tight.
+
+Next. The Laplacian.
+
+The four neighbour Laplacian, in the course's sign convention, has a centre of positive four and minus one at each of the four edge neighbours. Corners are zero. The eight neighbour version has a centre of positive eight and minus one everywhere else.
+
+So the rule is, the middle element equals the number of neighbours you are using. Four or eight. Why. Because the coefficients must sum to zero. It is a high pass filter.
+
+And the deeper reason. The Laplacian is the second derivative along x plus the second derivative along y. Each one dimensional second derivative contributes a centre of two. Two plus two is four. The centre is counted once per axis. That is the whole trap.
+
+The Laplacian finds edges at zero crossings. Not at maxima. That is important and it comes up in the matching question. It is isotropic. It is linear. It is not separable. And it is very noise sensitive, because it differentiates twice.
+
+Question. Apply the four neighbour Laplacian to a patch whose centre is ten, with edge neighbours of two, three, three, and two.
+
+Think it through. Minus each neighbour, plus four times the centre.
+
+The answer is thirty. Minus two minus three minus three minus two is minus ten. Four times ten is forty. Forty minus ten is thirty.
+
+Next. The integral image, also called the summed area table.
+
+The integral image at x y is the sum of all pixels above and to the left, inclusive.
+
+The rectangle sum formula. Take the integral image at r two c two. Subtract the integral image at r one minus one, c two. Subtract the integral image at r two, c one minus one. Then add back the integral image at r one minus one, c one minus one.
+
+Say it as a rhythm. Big, minus above, minus left, plus corner.
+
+The plus corner is the term everyone drops. You subtract the top strip and the left strip, and the top left block got removed twice, so you add it back once. That is inclusion and exclusion.
+
+Any index of zero, or out of bounds, is treated as zero.
+
+The payoff. Any rectangle of any size, in constant time, with four lookups. This is what makes Viola Jones face detection run in real time.
+
+Next. Counting convolution operations.
+
+The number of operations equals the number of output pixels times k squared. For a separable kernel it is the number of output pixels times two k.
+
+Note it is k squared per pixel, not k. The statement that a k by k kernel takes k operations per pixel is a distractor and it is false.
+
+Question. A seven by seven kernel produces a twelve by twelve output. How many operations for the plain two dimensional convolution, and how many if it is separable.
+
+Work it out. Output pixels first. Then multiply.
+
+The answers are seven thousand and fifty six, and two thousand and sixteen. Twelve times twelve is one hundred and forty four. One hundred and forty four times forty nine is seven thousand and fifty six. And one hundred and forty four times fourteen is two thousand and sixteen.
+
+Now the filter taxonomy. This is pure recall so listen closely.
+
+Linear filters. Mean, Gaussian, Sobel, Laplacian, Laplacian of Gaussian.
+
+Non linear filters. Median and bilateral.
+
+Separable. Mean, Gaussian, Sobel, Prewitt.
+
+Not separable. Laplacian, Laplacian of Gaussian, median, bilateral.
+
+Global operations. Histogram equalization. Everything else is local.
+
+Salt and pepper noise. Use the median. Gaussian noise. Use a Gaussian or mean filter. Edge preserving smoothing. Use the bilateral filter, because its coefficients vary with location.
+
+And one more. Multiplying an image by two preserves contrast better than adding thirty to it. Scaling stretches the range. Shifting does not.
+
+
+Part three. Convolutional network arithmetic.
+
+Four formulas. That is the whole block. And this is where your marks are, because it is worth more than filtering on the recent papers.
+
+Formula one. Output size. W out equals the floor of, W in minus F plus two P, all divided by S. Then add one.
+
+Floor the fraction first. Then add one. Never round.
+
+Three anchors to check yourself. With F equals one, no padding and stride one, the output equals the input. With no padding and stride one, the output is W minus F plus one. That is valid mode. And with stride one and padding equal to floor of F over two, for odd F, the output equals the input. That is same mode. If the stride is two the output should be roughly half. If it is not, you slipped.
+
+The same formula applies to pooling layers. Pooling is just a convolution with a fixed, parameterless reduction.
+
+And note. When a question asks for the number of features in the output, the answer is K, the number of filters. Not the height times width.
+
+Question. The input is two hundred and twenty four by two hundred and twenty four. The convolution has filter size eleven, padding two, stride four. What is the output size.
+
+Set it up. Two hundred and twenty four minus eleven plus four. Then divide by four.
+
+The answer is fifty five. Two hundred and twenty four minus eleven plus four is two hundred and seventeen. Two hundred and seventeen over four is fifty four point two five. Floor that to fifty four. Add one. Fifty five. That is AlexNet's first layer.
+
+Notice where the trap fires. Fifty four point two five. If you round up you get fifty six and you lose the mark.
+
+Formula two. Parameter count. It equals k times k times M times N, plus N.
+
+M is the input depth. N is the number of output channels, which is the same as the number of filters, which the course also calls K.
+
+Why. A filter spans the full input depth. So one filter is a block of k by k by M weights. It produces one feature map. You want N feature maps, so you need N filters. And each filter has one bias, so add N.
+
+Now the critical part. Stride and padding never enter the parameter count. Neither does the input spatial size. Because of weight sharing. The same block of weights is reused at every spatial position. The weights do not know where they are being applied. Stride only changes how many places you apply them.
+
+Formula three. Computational cost. It equals D f squared times k squared times M times N. Which is the same as D f squared times the parameter count without the biases.
+
+So once you have the parameter count, the cost is one multiplication away.
+
+Question. The input is twenty eight by twenty eight by thirty two. Sixty four filters of size five by five, stride two, padding two. How many parameters including bias.
+
+Careful. Two of those numbers are noise.
+
+The answer is fifty one thousand two hundred and sixty four. Five times five times thirty two times sixty four is fifty one thousand two hundred. Plus sixty four biases. Stride two and padding two are irrelevant.
+
+For depthwise separable convolution, the cost is D f squared k squared M, plus D f squared M N. And the ratio to standard convolution is one over N, plus one over k squared. For a three by three kernel that is about nine times cheaper. That is EfficientNet's trick.
+
+Pooling layers have zero parameters.
+
+Formula four. Backpropagation shapes.
+
+The rule that answers everything. A gradient has the same shape as the thing it is taken with respect to. The gradient of the loss with respect to X has the shape of X. The gradient with respect to W has the shape of W. The loss is a scalar so it contributes no shape.
+
+Forward, in valid mode with stride one, Y equals X minus k plus one. So backward, the gradient with respect to X has spatial size equal to the gradient with respect to Y, plus k, minus one.
+
+Why plus k minus one. Because a corner pixel of X participated in only one output window, while an interior pixel participated in k squared of them. To reach the corners the kernel has to hang off the edge. So you pad by k minus one on each side. That is full mode convolution.
+
+Question. The filters are seven by seven, stride one, no padding. The gradient with respect to Y is thirty by thirty by sixteen. What is the spatial size of the gradient with respect to X.
+
+Think. And ask yourself whether the sixteen matters.
+
+The answer is thirty six. Thirty plus seven minus one. And the sixteen is noise, it is the output channel count. Check it forwards. A thirty six by thirty six input, with a seven by seven valid convolution, gives thirty six minus seven plus one, which is thirty. Correct.
+
+Always check forwards. It takes three seconds and it catches every off by one.
+
+One more. In max pooling, the backward pass sends the entire gradient to the unit that was the maximum. Every other unit gets zero.
+
+Next. Receptive field.
+
+The formula. R in equals, R out minus one, times S, plus F. Apply it per layer, working from the top down.
+
+Read the two terms. The F is one window's footprint. The R out minus one times S is the distance to the last window's start. Add them.
+
+Two traps. The top layer's own stride is noise. A layer's stride tells you where the next neuron sits, not what one neuron sees. And filter counts, like sixty four or ninety six, are always noise. Receptive field is purely spatial.
+
+Memorize the result. Two stacked three by three convolutions have a five by five receptive field. Three stacked three by three convolutions give seven by seven. But two three by threes use eighteen weights instead of twenty five, and give you two non linearities instead of one. That is the entire argument of VGGNet.
+
+Question. Layer one is a convolution with ninety six kernels, five by five, stride two. Layer two is max pooling, two by two, stride two. What is the receptive field of one neuron in the pooling layer.
+
+Start at the top and walk down. And remember which stride you need.
+
+The answer is seven by seven. The pooling neuron sees a two by two region. Walk back through the convolution with F equals five and S equals two. Two minus one, times two, plus five. That is two plus five, which is seven. The pooling layer's own stride of two is irrelevant. The ninety six is noise.
+
+Now some layer facts.
+
+A one by one convolution changes the number of channels but never the spatial size.
+
+A pooling layer changes the spatial size but never the number of channels, and it has zero learnable parameters. But it does have hyperparameters, the filter size, the stride, and the pooling type. No parameters does not mean no hyperparameters.
+
+The number of output feature maps equals the number of filters. It does not depend on the input depth. The input depth lives inside each filter. This is the single most common confusion and it is tested directly.
+
+Weight sharing reduces the number of parameters, which increases bias and decreases variance. And convolutional networks have fewer parameters than fully connected ones, so they are less prone to overfitting, not more.
+
+Where does the compute go. The convolutional layers dominate the floating point operations. The fully connected layers dominate the parameter count and the storage.
+
+Now architecture signatures. Learn the pairings, never the option numbers, because the paper shuffles them.
+
+VGGNet. Stacks of three by three convolutions.
+GoogleNet. One by one convolutions, used as a bottleneck, in the Inception module.
+ResNet. Identity mapping. The skip connection.
+EfficientNet. Depthwise separable convolution, and compound scaling.
+AlexNet. Eleven by eleven early kernels, ReLU, and dropout.
+DenseNet. Dense connectivity.
+ResNeXt. Grouped convolution.
+SENet. Squeeze and excitation, which reweights the feature maps.
+
+Two false statements to watch for. DenseNet does not have the vanishing gradient problem, it alleviates it. And deeper does not always beat wider. The word always is the tell.
+
+
+Part four. Edges, corners and features.
+
+Edges have four physical causes. Surface colour or reflectance discontinuity. Depth discontinuity. Surface normal discontinuity. And illumination discontinuity, like a cast shadow.
+
+And edges matter for grouping pixels into objects, for tracking features, and for cueing three dimensional shape.
+
+So here is the practical hint. If all of the above is an option on an edges question, it is the answer.
+
+And the reason this matters conceptually. A shadow edge and an object silhouette produce identical evidence in the image. An edge detector only sees intensity. It cannot tell them apart. That is why edge detection alone can never segment objects.
+
+Now gradients.
+
+The gradient is the vector of the x derivative and the y derivative. Its magnitude is the square root of, f x squared plus f y squared. Its direction is the arctangent of f y over f x.
+
+The gradient is perpendicular to the edge. It points along the steepest intensity change.
+
+Sobel x has a zero column down the middle. One, zero, minus one, on the top row. Two, zero, minus two, in the middle. One, zero, minus one, on the bottom. It detects vertical edges.
+
+Sobel y has a zero row across the middle. One, two, one, on top. Zeros. Then minus one, minus two, minus one. It detects horizontal edges.
+
+The subscript names the direction of differentiation, not the orientation of the edge. If you get confused, look at where the zeros are. A zero column means a horizontal difference, which means vertical edges.
+
+Sobel is the outer product of one, two, one, with one, zero, minus one. So it is separable. Prewitt is the same thing with one, one, one, instead of one, two, one. And a warning. Sobel is not isotropic. That is a marked false distractor.
+
+Now why you must smooth before you differentiate.
+
+The Fourier transform of a derivative equals i omega times the Fourier transform of the function. So differentiation multiplies every frequency by its own frequency. A component at frequency one hundred gets amplified one hundred times. Differentiation is a high pass filter with unbounded gain.
+
+Now the second half. Natural images have most of their energy at low frequencies. Sensor noise is broadband, roughly equal at all frequencies. So the noise to signal ratio is highest at high frequencies. Differentiation amplifies exactly the band where your data is worst.
+
+So the blank answers are. Derivatives amplify high frequencies. And the noise to signal ratio is high at high frequencies.
+
+And the fix is free. Because the derivative of a convolution equals the convolution with the derivative, you can pre differentiate the Gaussian once, offline, and convolve once instead of twice. That single kernel is the first derivative of Gaussian.
+
+Now Canny. The full pipeline.
+
+Smooth. Then gradient. Then non maximum suppression. Then double thresholding. Then hysteresis.
+
+Reconstruct it from dependencies, not memory. You cannot differentiate before you denoise. You cannot suppress non maxima before you know the gradient direction. You should not threshold a thick ridge. And hysteresis needs the strong and weak labels to exist first.
+
+Non maximum suppression compares pixels along the gradient direction and keeps only local maxima. It thins the edge to one pixel wide.
+
+Double thresholding. If the magnitude is greater than or equal to T high, it is a strong edge. If it is greater than or equal to T low but less than T high, it is a weak edge. Note that boundary is inclusive on the low side. If it is below T low, it is not an edge.
+
+And a warning. Ambiguous edge is never a category. It is always a distractor.
+
+Hysteresis keeps a weak edge if and only if it is connected to a strong edge. That is why double thresholding exists. A single threshold forces you to choose between broken contours and noise speckle. Hysteresis gives you a strict threshold for starting an edge and a lenient one for continuing it.
+
+The effect of sigma. A large sigma gives thick, coarse edges. A small sigma gives fine, detailed edges.
+
+The effect of raising T high. Fewer false positives. More false negatives. Stricter means you miss more real edges.
+
+And the Gaussian centre value. G at zero zero equals one over, two pi sigma squared. For sigma equals one that is zero point one six. For sigma equals one point five that is zero point zero seven one. Two things. It is sigma squared, not sigma. And the kernel size is completely irrelevant to the centre value.
+
+Now the second moment matrix. This is the corner detection question.
+
+The matrix M is the sum over the window of the weight, times the matrix whose entries are I x squared, I x I y, I x I y, and I y squared.
+
+Where does it come from. Ask how much the patch changes if you shift the window slightly. Take a sum of squared differences. Taylor expand for a small shift. The constant term cancels and you are left with a quadratic form. M is that quadratic form. It is the second order Taylor expansion of, how distinctive is this patch.
+
+So the eigenvalues mean, how much does the patch change if you shift along that eigenvector.
+
+Both eigenvalues small, and roughly equal. Flat. No change in any direction.
+
+One eigenvalue much larger than the other. Edge. There is no change along the edge direction, so you can slide along it. That is the aperture problem. And note, both cases count. Lambda one much greater than lambda two is an edge. And lambda two much greater than lambda one is also an edge. On a multi select question, both are marked.
+
+Both eigenvalues large, and roughly equal. Corner. Every shift changes the patch, so the position is pinned down.
+
+The Harris response. R equals the determinant of M, minus k times the trace of M squared. With k around zero point zero four to zero point zero six.
+
+And the reason Harris uses this. The determinant equals lambda one times lambda two. The trace equals lambda one plus lambda two. Both are readable straight off the matrix. So you get the decision without ever solving for an eigenvalue and without a square root.
+
+R large and positive means corner. R negative means edge. R near zero means flat.
+
+Now eigenvalues of a two by two matrix, because you will need them.
+
+The characteristic equation is, lambda squared, minus the trace times lambda, plus the determinant, equals zero. So lambda equals, the trace, plus or minus the square root of the trace squared minus four times the determinant, all over two.
+
+Two facts fall out and they are worth more than the formula. The eigenvalues sum to the trace. And the eigenvalues multiply to the determinant.
+
+And the shortcut you will almost always need. If the matrix has an equal diagonal, that is entries a, b, b, a, then the eigenvalues are a plus b, and a minus b. No polynomial. No square root. Every paper hands you one of these.
+
+Now straightness. This is the most repeated computation on the paper.
+
+Straightness equals, lambda min minus lambda max, divided by lambda max plus lambda min.
+
+The numerator is minimum minus maximum. So the answer is always negative. This is deliberate. If your answer is positive you flipped the numerator.
+
+And the denominator is just the trace. Read it off the diagonal. You never need to add the eigenvalues back up.
+
+Two known answers. For the matrix one, two, two, one, the answer is minus two. For the matrix five, one, one, two, the answer is minus zero point five one five.
+
+And the critical decision rule. There is a graded assignment that uses a different formula, lambda min over lambda max, which gives minus one third for that first matrix. So. Use the formula printed in the question. Literally. Never import one from memory.
+
+Question. Compute the straightness for the matrix three, one, one, three.
+
+Use the equal diagonal shortcut. Then divide.
+
+The answer is minus zero point three three three. The eigenvalues are three plus one, which is four, and three minus one, which is two. Two minus four is minus two. Four plus two is six. Minus two over six is minus zero point three three three.
+
+Now SIFT.
+
+The pipeline. Extrema detection. Then keypoint localization. Then orientation assignment. Then description.
+
+Extrema detection uses the difference of Gaussian pyramid, and a candidate must beat all twenty six neighbours. Eight in the same scale, nine above, nine below. This gives scale invariance.
+
+Localization does a sub pixel fit, and rejects low contrast points and edge points.
+
+Orientation assignment uses a gradient orientation histogram. This gives rotation invariance.
+
+Description uses a four by four grid times eight orientation bins, which gives one hundred and twenty eight dimensions. It is normalized, which gives illumination invariance.
+
+The edge rejection test. Reject the keypoint if the trace of the Hessian squared, divided by the determinant of the Hessian, is greater than the threshold a.
+
+Known example. For the Hessian four, two, two, four, with a equals five. The trace is eight. Eight squared is sixty four. The determinant is sixteen minus four, which is twelve. Sixty four over twelve is five point three three. That is greater than five. So reject.
+
+But do not memorize five point three three means reject. Memorize the comparison. Change the threshold to six and the same matrix is kept.
+
+Why does this work. The ratio depends only on the ratio of the two eigenvalues. The absolute scale cancels. Its minimum value is four when the eigenvalues are equal, and it grows without bound as they separate. So a large value means a ridge, which means an edge.
+
+And why reject edges. Because a keypoint on an edge can slide along it. Re detect it in a second image and it localizes somewhere else along the ridge. Edges are unstable. Corners are pinned. Same reason as the aperture problem.
+
+One more SIFT fact. In image stitching, feature matching means finding corresponding keypoints across images and aligning them. It is not exposure correction, not colour blending, and not lens distortion. Those are all distractors.
+
+Now the filter to role matching table.
+
+Gaussian. Edge smoothing. It is preparation, not detection.
+Sobel. Edge detection. It is the plain discrete first derivative.
+First derivative of Gaussian. Edges found where the gradient is high. Look for maxima.
+Second derivative of Gaussian, that is the Laplacian of Gaussian. Edges found at zero crossings.
+
+Picture an intensity ramp. The function steps up. The first derivative has a peak at the step, so you look for maxima. The second derivative is the slope of that peak, which is zero at the top and flips sign across it, so you look for zero crossings. Both find the same edge. The second derivative is noisier because it differentiated twice.
+
+And, edges found when the gradient is low is a distractor with no referent.
+
+
+Part five. Neural networks and optimizers.
+
+Start with the activation functions and their derivatives.
+
+Sigmoid. Its derivative is sigmoid times one minus sigmoid. Its range is zero to one. It is centred at zero point five.
+
+Hyperbolic tangent. Its derivative is one minus the function squared. Its range is minus one to one. It is centred at zero.
+
+Notice both derivatives are expressible in terms of the function itself. That is why they dominated for thirty years. If you cached the forward value, the backward pass is free.
+
+ReLU. Its derivative is zero for negative input and one for positive input. Its range is zero to infinity.
+
+Leaky ReLU. Its derivative is alpha for negative input and one for positive input, where alpha is zero point zero one.
+
+Linear. Its derivative is one.
+
+Indicator. Its derivative is zero.
+
+Softplus. It is the natural log of, one plus e to the x. And its derivative is the sigmoid. That is a neat pairing and the exam likes it.
+
+Swish is x times sigmoid of x. And it is non monotonic.
+
+Now the identity. Hyperbolic tangent of x equals two, times sigmoid of two x, minus one. Both twos. The distractor is two sigmoid of x minus one, which drops the inner two. Check it at x equals one. Tanh of one is zero point seven six one six. And two sigmoid of two, minus one, is also zero point seven six one six. But two sigmoid of one, minus one, is zero point four six two one. Wrong.
+
+Now the vanishing gradient, quantitatively. The sigmoid derivative is maximized at zero point two five, when sigmoid equals zero point five. So every layer multiplies the gradient by at most zero point two five. Ten layers gives zero point two five to the power ten, which is about one in a million. The gradient does not decay. It evaporates. That is arithmetic, not bad luck.
+
+And that is why ReLU won. Its derivative is exactly one for positive input. Multiply by one as many times as you like and nothing shrinks. The cost is that its derivative is zero for negative input, so a unit that always goes negative is dead forever. Leaky ReLU exists purely to make that derivative non zero.
+
+Some activation true or false statements.
+
+Sigmoid is centred around zero point five while tanh is centred around zero. True.
+
+The derivative of the sigmoid is symmetric around the origin. False. It is an even function, so it is symmetric about the vertical axis. Symmetric about the origin would mean odd.
+
+For a saturated sigmoid the gradient explodes. False. It vanishes.
+
+ReLU is one Lipschitz. True. Its slope is never more than one.
+
+Swish is non monotonic. True.
+
+Tanh does not suffer from vanishing gradients. False. It saturates at both tails just like the sigmoid.
+
+Now the computation question. One pre activation, six activations applied to it.
+
+Z equals w dot x, plus b. Compute z once, carefully, then read down the list.
+
+Here is the pattern that makes it fast. Every instance is rigged so z is positive and reasonably large. When z is positive, linear, ReLU and leaky ReLU are all identical to z. Indicator is one. Softplus is just above z. Sigmoid is just below one. So four of the six answers need no calculator.
+
+And the trap. Every instance plants a negative times a negative. If you slip the sign, all six answers are wrong. Do the dot product twice.
+
+Two known instances. If z equals four, the answers are zero point nine eight two, four, one, four point zero two, four, and four. If z equals four point zero five, they are zero point nine eight two nine, four point zero five, one, four point zero six seven three, four point zero five, and four point zero five.
+
+Now softmax.
+
+Softmax of x i equals, e to the x i, divided by the sum over j of e to the x j.
+
+Memorize three exponentials. E to the one is two point seven one eight. E to the two is seven point three eight nine. E to the three is twenty point zero eight six.
+
+Now the shortcut. Softmax is shift invariant. Add a constant to every input and the e to the c factors out of the numerator and the denominator and cancels. So softmax only sees the differences between the logits.
+
+Which means any row of the form c, c plus one, c plus two, gives zero point zero nine, zero point two four five, zero point six six five. For any c. So one calculation answers the one two three version, the four five six version, and the seven eight nine version.
+
+And for two classes, softmax reduces exactly to the sigmoid of the difference. Binary softmax is logistic regression.
+
+Reading the dimension argument. Dimension one means each row sums to one. That is the usual case, where rows are samples and columns are classes. Dimension zero means each column sums to one.
+
+Always check. The outputs are positive and they sum to one.
+
+Now the perceptron.
+
+The update rule. If x is in the positive set and w dot x is less than zero, then w becomes w plus x. If x is in the negative set and w dot x is greater than or equal to zero, then w becomes w minus x.
+
+Why plus or minus x. Because after the update, the new score equals the old score plus the squared norm of x. The squared norm is positive, so the score strictly increases. It is the crudest possible fix and it is guaranteed to move the right way.
+
+The convergence theorem. The perceptron converges in finitely many updates if and only if the data is linearly separable. If the data is not separable it cycles forever. There is no graceful degradation.
+
+And the question they ask. The boolean data, zero zero maps to zero, zero one maps to one, one zero maps to one, one one maps to zero. Will a single layer perceptron always converge. The answer is no. Because that table is exclusive or. The two ones sit on one diagonal and the two zeros on the other. No straight line separates them.
+
+Recognize exclusive or from the data, not from the word. They will not use the word.
+
+Now the optimizers. Learn the lineage and the true or false questions collapse.
+
+Stochastic gradient descent has two separate problems. It zig zags in ravines. And it uses one learning rate for all parameters.
+
+Momentum fixes the zig zagging. It accumulates a velocity. Consistent directions build up. Oscillating directions cancel.
+
+Nesterov fixes momentum overshooting. It evaluates the gradient at the look ahead position, that is, where momentum is about to put you. So you get a correction before you overshoot rather than after.
+
+Adagrad fixes the one learning rate problem. It gives each parameter its own learning rate, scaled by one over the square root of the sum of its past squared gradients. This suits sparse features.
+
+RMS Prop fixes Adagrad's problem. Adagrad divides by a running sum, which only grows, so the learning rate decays monotonically to zero and training stalls. RMS Prop replaces the sum with an exponential moving average, so old gradients decay out and the learning rate can recover.
+
+Adam equals RMS Prop plus momentum. First moment, which is the average gradient, that is the direction. Second moment, which is the average squared gradient, that is the scale. Plus bias correction.
+
+Now the two lineage traps. Both are marked false.
+
+First. Adagrad was introduced to overcome the diminishing learning rate problem in RMS Prop. False. That is backwards. Adagrad came first and Adagrad has the problem. RMS Prop fixes it.
+
+Second. Adam was introduced to solve problems in RMS Prop by combining RMS Prop and Adagrad. False. Adam is RMS Prop plus momentum. Not plus Adagrad.
+
+Both distractors work by naming real components in the wrong order. Get the arrow direction right and both fall.
+
+More optimizer true or false.
+
+Nesterov uses a look ahead step and often converges faster than classical momentum. True.
+
+Adam uses only a first moment estimate. False. First and second.
+
+In Adam, setting beta one and beta two to zero reduces it to stochastic gradient descent with momentum. False. Beta one equals zero kills momentum.
+
+Momentum oscillates around the minimum before converging. True. The velocity carries you past the bottom.
+
+Momentum causes oscillations at saddle points because the momentum term dominates the small gradient. False. Momentum helps you escape saddle points. That is the point of it.
+
+The noise in stochastic gradient descent helps escape local minima and saddle points. True.
+
+A large fixed learning rate always speeds up convergence. False. The word always is the tell.
+
+Adagrad suits sparse features. True.
+
+Cosine annealing with warm restarts helps escape sharp minima. True.
+
+Now the momentum numeric. This is the single highest risk calculation on the paper, because there are two conventions.
+
+Convention A. Alpha outside. The velocity equals gamma times the old velocity, plus the gradient. And the new theta equals theta minus alpha times the velocity. The third paper uses this, and it prints the formula.
+
+Convention B. Alpha inside. The velocity equals gamma times the old velocity, plus alpha times the gradient. And the new theta equals theta minus the velocity. The second paper uses this, and it prints no formula.
+
+The decision rule. If the question prints the formula, use it verbatim. If it prints no formula, use convention B.
+
+Worked example for convention A. Theta is one point two. The gradient is minus zero point five. The old velocity is zero point three. Alpha is zero point one. Gamma is zero point nine. So the velocity is zero point nine times zero point three, which is zero point two seven, plus minus zero point five, giving minus zero point two three. And theta becomes one point two, minus zero point one times minus zero point two three, which is one point two plus zero point zero two three. The answer is one point two two three. Sanity check. The gradient was negative, so theta should increase. It did.
+
+Worked example for convention B. Theta is zero point five. The gradient is zero point two. The old velocity is zero point seven. Alpha is zero point seven five. Gamma is zero point eight. So the velocity is zero point eight times zero point seven, which is zero point five six, plus zero point seven five times zero point two, which is zero point one five. Total zero point seven one. And theta becomes zero point five minus zero point seven one. The answer is minus zero point two one.
+
+Two rules. Gamma multiplies the old velocity only. Never the gradient. And the gradient's sign carries through. Theta must always move opposite to the gradient's sign.
+
+Finally, regularization and tuning.
+
+Adding Gaussian noise to the input is equivalent to L two weight decay when the loss is mean squared error. True. That is a standard result.
+
+Training set fits the parameters. Validation set fits the hyperparameters. Test set is touched exactly once, at the end.
+
+Tuning hyperparameters on the training set is best. False. It selects for memorization.
+
+Tuning on the test set is acceptable if you report honestly. False. The test set is spent the moment you tune on it.
+
+Test performance, with hyperparameters chosen on a validation set, is a realistic estimate of generalization. True.
+
+The principle. Any set you select on becomes optimistically biased. Because taking the maximum over many noisy estimates selects for whichever model got luckiest, not whichever is best.
+
+
+Part six. The free marks.
+
+NumPy memory semantics.
+
+These share data, so writes propagate back to the original. The plain equals sign, which makes an alias. The view method. The ravel method. And basic slicing.
+
+These own their data, so writes do not propagate. The copy method. And the flatten method.
+
+The distinction to hold. Ravel returns a view when it can, and copies only if the array is not contiguous. Flatten always copies. That single word is the whole question.
+
+And to convert a flat index, arr at i j is flat index, i times the number of columns, plus j.
+
+Degrees of freedom. Two dimensions first, then three.
+
+Translation. Two, then three.
+Rigid, also called Euclidean. Three, then six.
+Similarity. Four, then seven.
+Affine. Six, then twelve.
+Projective. Eight, then fifteen.
+
+And the trick. When they ask for the sum of the degrees of freedom for translation and some named transformation, in n dimensions, the answer is just that named row. Because the named row already includes translation.
+
+The sequences. Canny. Smooth, gradient, non maximum suppression, double thresholding, hysteresis.
+
+SIFT. Extrema, localize, orient, describe.
+
+The PyTorch training loop. Load the data. Zero the gradients. Forward pass. Compute the loss. Backward pass. Optimizer step.
+
+
+Part seven. The ten rules again. Last time.
+
+One. Convolution flips the kernel. Correlation does not. Same weights. Same shape. Different values.
+
+Two. Straightness is negative. Lambda min minus lambda max on top. The denominator is the trace.
+
+Three. Floor the fraction, then add one. Never round.
+
+Four. Parameter counts ignore stride and padding. It is k squared, times M, times N, plus N.
+
+Five. The gradient with respect to X has the shape of X. It equals the gradient with respect to Y, plus k, minus one.
+
+Six. Coefficients summing to zero means high pass.
+
+Seven. Separable means rank one. Every row is a multiple of the first. A zero row is fine.
+
+Eight. Median filter. Default to output indexing. The window sits at input r plus one, c plus one.
+
+Nine. Momentum. Use the printed formula. If none is printed, alpha goes inside the velocity.
+
+Ten. Contrast stretch. Transform the mean directly.
+
+And five more that cost people marks.
+
+Canny smooths first, always. A large sigma gives thick edges.
+
+For receptive field, the top layer's own stride is noise.
+
+The Laplacian's middle element equals the number of neighbours, four or eight, and the coefficients sum to zero.
+
+Hyperbolic tangent of x equals two, sigmoid of two x, minus one. Both twos.
+
+Adagrad, then RMS Prop, then Adam. Never the other direction. And Adam is RMS Prop plus momentum.
+
+That is the end. Good luck.
