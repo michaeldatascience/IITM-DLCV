@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DLCV Quiz 1 — Formula Sheet</title>
+<script>MathJax={tex:{inlineMath:[['$','$'],['\\(','\\)']]},svg:{fontCache:'global'}};</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/3.2.2/es5/tex-svg.min.js"></script>
+<style>
+:root{--bg:#0d1220;--panel:#141b2e;--ink:#e8ecf6;--dim:#8b96b0;--line:#26304a;
+  --hd:#7fb0ff;--k:#5fd0a8;--a:#f2b03d;--r:#ff6b7f;--v:#a897f5;}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);
+  font-family:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;font-size:10.3px;line-height:1.4}
+.wrap{max-width:1200px;margin:0 auto;padding:13px 15px}
+h1{font-family:'Space Grotesk',system-ui,sans-serif;font-size:16px;font-weight:600;margin:0 0 2px}
+.sub{color:var(--dim);font-size:9.3px;margin:0 0 9px}
+.cols{column-count:3;column-gap:13px}
+@media(max-width:900px){.cols{column-count:2}}
+@media(max-width:600px){.cols{column-count:1}}
+.card{break-inside:avoid;background:var(--panel);border:1px solid var(--line);border-radius:7px;
+  padding:6px 8px 7px;margin:0 0 8px}
+.card h2{font-family:'Space Grotesk',system-ui,sans-serif;font-size:10px;font-weight:600;color:var(--hd);
+  margin:0 0 4px;letter-spacing:.03em;text-transform:uppercase;border-bottom:1px solid var(--line);padding-bottom:3px}
+.card p{margin:2px 0}
+.l{color:var(--dim)} b{color:var(--k);font-weight:600} i{color:var(--a);font-style:normal}
+.rr{color:var(--r)} .vv{color:var(--v)}
+mjx-container{margin:0 !important}
+.f{font-size:9.7px}
+hr{border:0;border-top:1px dashed var(--line);margin:4px 0}
+.tbl{width:100%;border-collapse:collapse;margin:2px 0}
+.tbl td{padding:1px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+.tbl td:first-child{color:var(--dim)}
+@media print{
+  html,body{background:#fff;color:#000;font-size:8px}
+  .wrap{max-width:100%;padding:0}.cols{column-count:3;column-gap:7px}
+  .card{background:#fff;border:1px solid #bbb;padding:3px 5px;margin:0 0 4px}
+  .card h2{color:#000;border-color:#999} h1{color:#000}.sub{color:#333}
+  .l,.tbl td:first-child{color:#444} b{color:#046a43} i{color:#8a5a00}
+  .rr{color:#b00020}.vv{color:#5b3fb0} hr{border-color:#ccc}
+  @page{margin:7mm}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>DLCV Quiz 1 — Formula &amp; Results Sheet</h1>
+<p class="sub">Pure recall — every EXAM CHEAT CODE, consolidated. Notation: $D_f$ input side · $M$ input depth · $k$ kernel · $N$ #filters = output depth · $S,P$ stride, pad. &nbsp;<b>Translate $F\to k$, $K\to N$, $C\to M$.</b></p>
+
+<div class="cols">
+
+<!-- FILTERING -->
+<div class="card">
+<h2>Corr vs Conv</h2>
+<p class="f">$(I\oplus h)=\sum h(u,v)I(x{+}u,y{+}v)$ <span class="l">no flip</span></p>
+<p class="f">$(I*h)=\sum h(u,v)I(x{-}u,y{-}v)$ <span class="l">flip 180°</span></p>
+<p><b>same weights · same shape · diff values</b></p>
+<p><b>h symmetric ⟹ corr = conv</b></p>
+<hr>
+<p class="l">conv: commut ✓ assoc ✓ distrib ✓ · corr: distrib only</p>
+<p class="f">$\mathcal F\{a*b\}=\mathcal F\{a\}\mathcal F\{b\}$ (LTI) · $(f*g)'=f'*g=f*g'$</p>
+</div>
+
+<div class="card">
+<h2>Summation → kernel</h2>
+<p class="l">1. divide by denominator FIRST</p>
+<p class="l">2. <b>$x$ = column, $y$ = row</b></p>
+<p class="l">3. coeff of $f(x{+}a,y{+}b)$ → cell (row $b$, col $a$)</p>
+<p class="l">4. do NOT flip (summation is already flipped form)</p>
+<p class="i">centre = the $f(x,y)$ term · check it first</p>
+</div>
+
+<div class="card">
+<h2>Separability</h2>
+<p><b>separable ⟺ rank 1 ⟺ $K=vh^{\!\top}$</b></p>
+<p class="l">every row = scalar × first row · or every 2×2 minor $=0$ · zero row ok</p>
+<p><span class="l">YES:</span> <b>mean, Gaussian, Sobel, Prewitt</b></p>
+<p><span class="l">NO:</span> <b>Laplacian, LoG, median, bilateral</b></p>
+<p class="f">cost $k^2$/px → sep $2k$/px · <b>speedup $k/2$</b></p>
+</div>
+
+<div class="card">
+<h2>Taxonomy (T/F bank)</h2>
+<p class="l">LINEAR: mean, Gaussian, Sobel, Laplacian, LoG</p>
+<p class="l">NON-LINEAR: <b>median, bilateral</b></p>
+<p class="l">GLOBAL: <b>hist-eq</b> · LOCAL: all else</p>
+<p class="l">salt&amp;pepper → <b>median</b> · Gaussian noise → Gaussian/mean</p>
+<p class="l">edge-preserving → <b>bilateral</b> (weights vary per loc)</p>
+<p class="i">"separable BECAUSE linear" = keyed TRUE (bad logic; eliminate, don't reason)</p>
+</div>
+
+<div class="card">
+<h2>Pass band / norm</h2>
+<p><b>Σcoeff $=0$ ⟹ HIGH-pass</b> (kills DC → 0)</p>
+<p><b>Σcoeff $\ne0$ one sign ⟹ LOW-pass</b> (returns const)</p>
+<p class="l">norm factor = Σ raw weights (normalized sum to 1)</p>
+<p class="l">box $\tfrac19$ · Gauss 3×3 $\tfrac1{16}$ · Gauss 5×5 $\tfrac1{273}$</p>
+</div>
+
+<div class="card">
+<h2>Median / centre-unchanged</h2>
+<p><b>median = sort 9, take 5th</b> <span class="l">non-linear · salt&amp;pepper</span></p>
+<p class="l">5×5 in, 3×3 win, no pad → 3×3 out</p>
+<p class="l">out$(r,c)$ → window centred input$(r{+}1,c{+}1)$ <span class="i">default</span></p>
+<p class="l">out(3,3): centre in(4,4)→<b>22</b> · alt in(3,3)→<b>20</b> · do both</p>
+<hr>
+<p class="l">"leave centre unchanged, ANY image" → <b>δ=[0 0 0;0 1 0;0 0 0]</b></p>
+<p class="l">specific image → compute all, take exact match</p>
+<p class="rr">T2 Q78 key wrong (gives 8.71≠8) — don't learn from it</p>
+</div>
+
+<div class="card">
+<h2>Contrast / point</h2>
+<p class="f"><b>$I'=\dfrac{I-I_{\min}}{I_{\max}-I_{\min}}\times255$</b></p>
+<p class="i">ask mean → transform the mean directly (affine)</p>
+<p class="l">$I_{\min}{\to}0,I_{\max}{\to}255$; from IMAGE; don't round</p>
+<p class="l">$I{\times}2$ preserves contrast $>$ $I{+}30$ (scale vs shift)</p>
+</div>
+
+<div class="card">
+<h2>Laplacian / LoG</h2>
+<p><b>4-nbr centre $+4$ · 8-nbr centre $+8$</b></p>
+<p class="l">middle = #neighbours · Σ $=0$ · centre counted once/axis</p>
+<p class="l">edges at ZERO CROSSINGS · isotropic · NOT separable · noisy</p>
+</div>
+
+<div class="card">
+<h2>Integral image / ops</h2>
+<p class="f"><b>$S=II(r_2c_2)-II(r_1{-}1,c_2)-II(r_2,c_1{-}1)+II(r_1{-}1,c_1{-}1)$</b></p>
+<p class="l">big − above − left + corner · oob $=0$ · $O(1)$ any size</p>
+<hr>
+<p class="l">ops = out-px $\times k^2$ (2D), $\times 2k$ (sep) · per-px $k^2$ not $k$</p>
+</div>
+
+<!-- CNN -->
+<div class="card">
+<h2 class="vv">CNN — sizes</h2>
+<p class="f"><b>$W_{out}=\big\lfloor\frac{W_{in}-F+2P}{S}\big\rfloor+1$</b></p>
+<p class="i">floor the fraction THEN +1 · never round</p>
+<p class="l">valid $W{-}F{+}1$ · same $P{=}\lfloor F/2\rfloor$ · S2→½ · pooling too</p>
+<p class="l">"#features in output" = $N$ (filter count), not H×W, not $M$</p>
+</div>
+
+<div class="card">
+<h2 class="vv">CNN — params / cost</h2>
+<p class="f"><b>params $=k^2MN+N$</b> (bias $N$)</p>
+<p class="f"><b>cost $=D_f^2k^2MN=D_f^2\times$params(no bias)</b></p>
+<p class="i">stride, pad, $D_f$ NOT in params</p>
+<p class="l">1×1 params (bias) $=M{+}1$ · depthwise-sep ratio $\tfrac1N+\tfrac1{k^2}$</p>
+<p class="l">pooling params $=0$</p>
+</div>
+
+<div class="card">
+<h2 class="vv">CNN — backprop</h2>
+<p><b>∂L/∂X shape = X · ∂L/∂W shape = W</b></p>
+<p class="f"><b>$|∂L/∂X|=|∂L/∂Y|+k-1$</b></p>
+<p class="f">$∂L/∂X=∂L/∂Y*W$ (full) · $∂L/∂W=X\oplus∂L/∂Y$</p>
+<p class="l">verify fwd: ans $-k+1=$ given · max-pool: winner gets ALL grad</p>
+</div>
+
+<div class="card">
+<h2 class="vv">CNN — receptive field</h2>
+<p class="f"><b>$r=(r-1)S_{low}+F_{low}$</b> top-down · start $r=F_{top}$</p>
+<p class="i">top layer's own stride ignored · filter counts = noise</p>
+<p><b>two 3×3 = 5×5 · three 3×3 = 7×7</b> (18 vs 25 wts)</p>
+</div>
+
+<div class="card">
+<h2 class="vv">CNN — facts</h2>
+<p class="l">1×1 → <b>C only</b> · pool → <b>H,W only</b> · pool 0 params</p>
+<p><b>#out maps = #filters = N</b> (not $M$; $M$ inside filter)</p>
+<p class="l">weight-share → fewer params → <b>less overfit</b> → bias↑ var↓</p>
+<p class="l">FLOPs = conv layers · storage/params = FC layers</p>
+</div>
+
+<div class="card">
+<h2 class="vv">Architectures</h2>
+<p class="l">VGG 3×3 stacks · GoogleNet 1×1 bottleneck</p>
+<p class="l">ResNet identity/skip · EfficientNet depthwise-sep + scaling</p>
+<p class="l">AlexNet 11×11+ReLU+dropout · DenseNet dense</p>
+<p class="l">SENet reweight maps · ResNeXt grouped conv</p>
+<p class="rr">FALSE: "deeper always &gt; wider" · "DenseNet HAS vanishing grad"</p>
+</div>
+
+<!-- EDGES -->
+<div class="card">
+<h2>Edges — causes / uses</h2>
+<p class="l">caused by (→ ALL OF ABOVE): reflectance/colour ·</p>
+<p class="l">&nbsp;depth · surface-normal · illumination (shadow)</p>
+<p class="l">matter (→ ALL): group pixels · track features · cue 3D</p>
+<p class="i">"All of the above" offered on edges Q → it's the answer</p>
+</div>
+
+<div class="card">
+<h2>Gradients / Sobel</h2>
+<p class="f">$\nabla f{=}[f_x,f_y]$ · $|\nabla f|{=}\sqrt{f_x^2{+}f_y^2}$ · $\theta{=}\tan^{-1}\!\tfrac{f_y}{f_x}$</p>
+<p class="l">gradient ⊥ edge</p>
+<p><b>$S_x$ (zero col) → vertical · $S_y$ (zero row) → horizontal</b></p>
+<p class="l">subscript = direction of differentiation, not edge</p>
+<p class="l">Sobel $=[1\,2\,1]^{\!\top}[1\,0\,{-}1]$ · Prewitt $[1\,1\,1]^{\!\top}$ · Sobel NOT isotropic</p>
+<p class="f">$\mathcal F\{f'\}=i\omega\mathcal F\{f\}$ → deriv=high-pass → <b>smooth first</b></p>
+</div>
+
+<div class="card">
+<h2>Canny</h2>
+<p><b>smooth → gradient → NMS → double-thresh → hysteresis</b></p>
+<p class="l">≥$T_{hi}$ strong · $T_{lo}{\le}\cdot{<}T_{hi}$ weak · $<T_{lo}$ none</p>
+<p class="rr">"ambiguous edge" never a category (distractor)</p>
+<p class="l">NMS: along gradient direction, keep maxima → 1px</p>
+<p class="l">hysteresis: weak kept iff touches strong</p>
+<p><b>σ↑ thick · σ↓ fine · $T_{hi}$↑ → FP↓ FN↑</b></p>
+<p class="f">$G(0,0)=\tfrac1{2\pi\sigma^2}$ · <b>σ1→0.16 · σ1.5→0.071</b> (σ², size irrelevant)</p>
+</div>
+
+<div class="card">
+<h2>Corners — 2nd moment</h2>
+<p class="f">$M=\sum_W w\begin{bmatrix}I_x^2&I_xI_y\\I_xI_y&I_y^2\end{bmatrix}$</p>
+<p class="l">both small → FLAT · one $\gg$ other (either) → EDGE</p>
+<p class="l">both large $\approx$ → CORNER</p>
+<p class="f"><b>$R=\det M-k(\mathrm{tr}\,M)^2$</b> · $k\!\approx\!0.04$–$0.06$</p>
+<p class="l">$R{>}0$ corner · $R{<}0$ edge · $R{\approx}0$ flat</p>
+</div>
+
+<div class="card">
+<h2>Eigenvalues 2×2</h2>
+<p class="f"><b>$\lambda=\frac{\mathrm{tr}\pm\sqrt{\mathrm{tr}^2-4\det}}{2}$</b> · $\lambda_1{+}\lambda_2{=}\mathrm{tr}$ · $\lambda_1\lambda_2{=}\det$</p>
+<p class="f">$\begin{bmatrix}a&b\\b&a\end{bmatrix}\!\to\lambda{=}a{\pm}b$, vec $(1,1),(1,{-}1)$</p>
+<p class="l">eigvec: top row $[p\,q]$ → $(-q,p)$ · triangular → diag entries</p>
+</div>
+
+<div class="card">
+<h2>Straightness</h2>
+<p class="f"><b>$\dfrac{\lambda_{\min}-\lambda_{\max}}{\lambda_{\max}+\lambda_{\min}}$</b> <span class="rr">ALWAYS negative</span></p>
+<p class="l">denominator $=\mathrm{tr}$ · use the printed formula</p>
+<p class="l">known: $[1\,2;2\,1]\to-2$ · $[5\,1;1\,2]\to-0.515$</p>
+<p class="i">GA2 uses $\lambda_{\min}/\lambda_{\max}$ instead → import nothing from memory</p>
+</div>
+
+<div class="card">
+<h2>SIFT / feature match</h2>
+<p><b>extrema → localize → orient → describe</b></p>
+<p class="l">beat 26 nbrs (8+9+9) → scale · orient hist → rotation</p>
+<p class="l">desc 4×4×8 $=128$-dim, normalized → illumination</p>
+<p class="f">edge-reject: $\dfrac{(\mathrm{tr}\,H)^2}{\det H}>a$ · $[4\,2;2\,4],a{=}5$→$5.33$ REJECT</p>
+<p class="l">stitching = match keypoints ACROSS images &amp; align</p>
+</div>
+
+<div class="card">
+<h2>Filter → role</h2>
+<p class="l">Gaussian → smoothing (prep, not detect)</p>
+<p class="l">Sobel → edge detection (discrete 1st deriv)</p>
+<p class="l">1st-deriv-Gauss → edges where gradient HIGH (maxima)</p>
+<p class="l">2nd-deriv-Gauss / LoG → ZERO CROSSING</p>
+<p class="i">f′ peaks at edge; f″ zero at that peak; f″ noisier</p>
+</div>
+
+<!-- NN / OPTIMIZERS -->
+<div class="card">
+<h2 class="vv">Activations</h2>
+<table class="tbl f">
+<tr><td>$\sigma$</td><td>$\frac1{1+e^{-x}}$ · $'{=}\sigma(1{-}\sigma)$ · max .25 · (0,1) ctr .5</td></tr>
+<tr><td>tanh</td><td>$'{=}1{-}\tanh^2$ · (−1,1) · ctr 0 (preferred)</td></tr>
+<tr><td>ReLU</td><td>$'{=}0/1$ · 1-Lipschitz · [0,∞)</td></tr>
+<tr><td>LReLU</td><td>$'{=}\alpha/1$ (α.01) · lin $'{=}1$ · indic $'{=}0$</td></tr>
+<tr><td>softpl</td><td>$\ln(1{+}e^x)$ · $'{=}\sigma(x)$</td></tr>
+<tr><td>swish</td><td>$x\sigma(x)$ · non-monotonic</td></tr>
+</table>
+<p><b>$\tanh x=2\sigma(2x)-1$</b> <span class="i">both 2s</span></p>
+<p class="l">σ′ EVEN (y-axis, not origin) · saturated σ → grad VANISHES</p>
+</div>
+
+<div class="card">
+<h2 class="vv">Neuron / softmax</h2>
+<p class="f">$z{=}w^{\!\top}x{+}b$ · $z{>}0$: lin=ReLU=LReLU=$z$, indic=1</p>
+<p class="l">softplus just above $z$ · σ just below 1 · <span class="i">dot product TWICE</span></p>
+<p class="l">known: $z{=}4$→.982,4,1,4.02,4,4</p>
+<hr>
+<p class="f"><b>softmax $=\frac{e^{x_i}}{\sum e^{x_j}}$</b> · shift-invariant</p>
+<p class="l">$e^1{=}2.718\,e^2{=}7.389\,e^3{=}20.086$ · $[c,c{+}1,c{+}2]$→$[.09,.245,.665]$</p>
+<p class="l">2-class = sigmoid of diff · dim1 rows sum 1</p>
+</div>
+
+<div class="card">
+<h2 class="vv">Perceptron</h2>
+<p class="f"><b>$x\!\in\!P,w{\cdot}x{<}0\Rightarrow w{+}{=}x$</b></p>
+<p class="f"><b>$x\!\in\!N,w{\cdot}x{\ge}0\Rightarrow w{-}{=}x$</b></p>
+<p class="l">$w'{\cdot}x=w{\cdot}x+\|x\|^2$ (score ↑)</p>
+<p class="l">converges ⟺ linearly separable · XOR never (1s one diagonal)</p>
+</div>
+
+<div class="card">
+<h2 class="vv">Optimizers</h2>
+<p class="l">SGD →(zig-zag) Mom →(overshoot) Nesterov</p>
+<p class="l">SGD →(one LR) Adagrad →(LR→0) RMSProp</p>
+<p><b>Adam = RMSProp + Momentum</b></p>
+<p class="l">Adagrad SUM (LR→0) · RMSProp EMA (recovers)</p>
+<p class="l">1st mom $E[g]$=direction · 2nd $E[g^2]$=scale · β₁=0 kills mom</p>
+<p class="l">TRUE: Nesterov look-ahead · mom oscillates minima · mom helps saddle</p>
+<p class="l">TRUE: SGD noise escapes minima · Adagrad sparse · cosine restarts</p>
+<p class="rr">FALSE: "Adagrad fixes RMSProp" · "Adam=RMSProp+Adagrad"</p>
+<p class="rr">FALSE: "large fixed LR always faster" · "β=0→SGD+mom"</p>
+</div>
+
+<div class="card">
+<h2 class="vv">Momentum numeric</h2>
+<p class="l">A (formula printed): <b>$v{=}\gamma v{+}\nabla$ · $\theta{=}\theta{-}\alpha v$</b> → 1.223</p>
+<p class="l">B (no formula): <b>$v{=}\gamma v{+}\alpha\nabla$ · $\theta{=}\theta{-}v$</b> → −0.21</p>
+<p class="i">printed → verbatim · else Convention B</p>
+<p class="l">γ×$v$ only · ∇&lt;0 → θ↑ · θ moves opposite ∇ sign</p>
+<p class="l">Adam: $m{=}\beta_1m{+}(1{-}\beta_1)\nabla$, $v{=}\beta_2v{+}(1{-}\beta_2)\nabla^2$, bias $/(1{-}\beta^t)$</p>
+</div>
+
+<div class="card">
+<h2>Tuning / DoF</h2>
+<p class="l">train→params · val→hyperparams · test→once</p>
+<p class="l">select-on ⟹ optimistic bias · Gauss input noise ≡ L2 (MSE)</p>
+<hr>
+<table class="tbl f">
+<tr><td></td><td>2D · 3D</td></tr>
+<tr><td>transl</td><td>2 · 3</td></tr>
+<tr><td>rigid</td><td>3 · 6</td></tr>
+<tr><td>simil</td><td>4 · 7</td></tr>
+<tr><td>affine</td><td>6 · 12</td></tr>
+<tr><td>proj</td><td>8 · 15</td></tr>
+</table>
+<p class="l">"transl + X in nD" = the X row</p>
+</div>
+
+<div class="card">
+<h2>NumPy / sequences</h2>
+<p class="l">share (writes propagate): <b>= · view · ravel* · slice</b></p>
+<p class="l">own: <b>copy · flatten</b> · *ravel=view if contiguous else copy</p>
+<p class="l">flatten ALWAYS copies · flat: arr[i,j]=flat[i·ncols+j]</p>
+<hr>
+<p class="l">Canny: smooth→grad→NMS→dbl-thresh→hyst</p>
+<p class="l">SIFT: extrema→localize→orient→describe</p>
+<p class="l">PyTorch: data→zero_grad→forward→loss→backward→step</p>
+</div>
+
+</div>
+</div>
+</body>
+</html>
